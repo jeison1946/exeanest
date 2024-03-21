@@ -18,7 +18,10 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@exeaAdapter/*": ["src/shared/adapter/*"]
+      "@customDecorator/*": ["src/shared/decorator/*"],
+      "@customGuards/*": ["src/shared/guards/*"],
+      "@customServices/*": ["src/shared/services/*"],
+      "@customcore/*": ["src/shared/core/*"]
     }
   }
 }

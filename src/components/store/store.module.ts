@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
-import { StatusController } from './status/status.controller';
 import { ConsultGateway } from './consult/consult.gateway';
+import { LiveController } from './controller/live/live.controller';
+import { LiveService } from './services/live/live.service';
+import { ResponseService } from '@customServices/response/response.service';
 
 @Module({
-  providers: [StatusController, ConsultGateway],
+  providers: [ConsultGateway, LiveService, ResponseService],
+  controllers: [LiveController],
 })
 export class StoreModule {}
