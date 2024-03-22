@@ -8,7 +8,12 @@ import { Server } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:4200', 'https://emisoras.local.com'],
+    origin: [
+      'http://localhost:4200',
+      'https://emisoras.local.com',
+      'https://dev-epa.us.seedcloud.co',
+      'https://emisoras2.exeamedia.com/',
+    ],
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PATCH'],
     credentials: false,
   },
