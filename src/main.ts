@@ -9,7 +9,7 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.ORIGIN.split(', '),
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PATCH'],
-    credentials: true,
+    credentials: false,
   });
   //Configurate Dto Validation
   app.useGlobalPipes(

@@ -1,1 +1,7 @@
+DB_USER=dev
+DB_PASSWORD=3EWf5KUVN2LllQlf
+DB_CLUSTER=cluster0.vb3vwpt.mongodb.net
+DB_NAME=dev
+ORIGIN=http://localhost:3232, http://localhost:4200
 PORT=2000
+CMS=https://emisoras.local.com
