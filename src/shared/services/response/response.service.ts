@@ -1,14 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
-
-@Injectable()
 export class ResponseService {
-  public component: string = 'NotAsign';
-
-  setComponent(value: string): void {
-    this.component = value;
-  }
-
   success(res: Response, message: any, code: number = 200) {
     return res.status(code).send({
       code: code,
@@ -16,24 +7,24 @@ export class ResponseService {
     });
   }
 
-  error(res: Response, message: any, status: number, e: any) {
+  error(res: Response, status: number, e: any, componentId: string) {
     console.log(
-      `[response error] - Component [${this.component}] - [detail] ${e}`,
+      `[response error] - Component [${componentId}] - [detail] ${e}`,
     );
     return res.status(status).send({
       code: status,
-      response: this.mapError(e),
+      response: this.mapError(e, componentId),
     });
   }
 
-  mapError(details: any): any {
+  mapError(details: any, componentId): any {
     const data = {
       message: typeof details === 'object' ? details.message : details,
     };
     if (details.code) {
       switch (details.code) {
         case 11000:
-          data.message = `El ${this.component} ya existe`;
+          data.message = `El ${componentId} ya existe`;
           break;
         default:
           data.message = details.message;

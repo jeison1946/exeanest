@@ -35,6 +35,7 @@ export class GatewaysGateway {
       pos: payload.pos,
       status: payload.status,
       client: client.id,
+      date: new Date(),
     });
     if (response) {
       this.server.emit('statusPointofsaleEvent', response);

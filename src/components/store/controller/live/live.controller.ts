@@ -1,4 +1,3 @@
-import { ResponseService } from '@customServices/response/response.service';
 import { Controller, Get, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { LiveService } from '../../services/live/live.service';
@@ -6,12 +5,7 @@ import { LiveService } from '../../services/live/live.service';
 @Controller('store/live')
 export class LiveController {
   private startTime: number = null;
-  constructor(
-    private responseService: ResponseService,
-    private liveService: LiveService,
-  ) {
-    responseService.setComponent('Live');
-  }
+  constructor(private liveService: LiveService) {}
 
   @Get(':id')
   async getLiveSong(@Res() res: Response) {

@@ -27,6 +27,19 @@ export class StatusposService {
     return false;
   }
 
+  async get(filter: any) {
+    const posArray = filter.pos ? filter.pos.split(',') : [];
+    const converInt = posArray.map((numero: string) => parseInt(numero));
+    return await this.model.aggregate([
+      // Filtrar los documentos para incluir solo los registros con pos igual a 102 o 103
+      { $match: { pos: { $in: converInt } } },
+      // Ordenar los documentos por fecha en orden descendente dentro de cada grupo de "pos"
+      { $sort: { pos: 1, date: -1 } },
+      // Agrupar los documentos por el campo "pos"
+      { $group: { _id: '$pos', lastRecord: { $first: '$$ROOT' } } },
+    ]);
+  }
+
   async disconect(id: string) {
     const exist = await this.model.findOne({ client: id });
     if (exist) {

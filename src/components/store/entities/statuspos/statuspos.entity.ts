@@ -14,7 +14,7 @@ export class StatusPos {
   @Prop({ required: true })
   client: string;
 
-  @Prop({ required: true, default: Date.now() })
+  @Prop({ required: true, default: new Date() })
   date: Date;
 }
 
