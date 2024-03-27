@@ -31,11 +31,13 @@ export class GatewaysGateway {
 
   @SubscribeMessage('statusPointofsale')
   async statusPointofsale(client: any, payload: any): Promise<void> {
+    const currentDate = new Date();
+    currentDate.setUTCHours(currentDate.getUTCHours() - 5);
     const response = await this.statusposService.create({
       pos: payload.pos,
       status: payload.status,
       client: client.id,
-      date: new Date(),
+      date: currentDate,
     });
     if (response) {
       this.server.emit('statusPointofsaleEvent', response);
