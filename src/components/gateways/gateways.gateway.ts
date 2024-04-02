@@ -14,6 +14,7 @@ import { Server } from 'socket.io';
       'https://dev-epa.us.seedcloud.co',
       'https://dev-exea-player.seedcloud.co',
       'https://emisoras2.exeamedia.com',
+      'https://emisora2.exeamedia.com',
     ],
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PATCH'],
     credentials: false,
