@@ -9,14 +9,18 @@ import {
   StatusPos,
   StatusPosSchema,
 } from './entities/statuspos/statuspos.entity';
+import { RulesController } from './controller/rules/rules.controller';
+import { RuleService } from './services/rule/rule.service';
+import { Rules, RulesSchema } from './entities/rules/rules.entity';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: StatusPos.name, schema: StatusPosSchema },
+      { name: Rules.name, schema: RulesSchema },
     ]),
   ],
-  providers: [ResponseService, LiveService, StatusposService],
-  controllers: [LiveController, StatusposController],
+  providers: [ResponseService, LiveService, StatusposService, RuleService],
+  controllers: [LiveController, StatusposController, RulesController],
 })
 export class StoreModule {}

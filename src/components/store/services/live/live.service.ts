@@ -9,7 +9,7 @@ export class LiveService {
     const agent = new https.Agent({
       rejectUnauthorized: false,
     });
-    const response = await fetch(
+    const response: any = await fetch(
       `${process.env.CMS}/api/v1/client/rules?id=100`,
       {
         method: 'GET',
