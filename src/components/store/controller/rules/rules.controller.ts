@@ -32,10 +32,22 @@ export class RulesController {
   async get(
     @Query() query: { pos: number },
     @Req() request: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ) {
     await this.ruleService
       .get(query, request)
+      .then((data) => {
+        this.responseService.success(res, data);
+      })
+      .catch((e) => {
+        this.responseService.error(res, 500, e, this.compoentId);
+      });
+  }
+
+  @Get('/logs')
+  async listLogs(@Query() query, @Res() res: Response) {
+    await this.ruleService
+      .getList(query)
       .then((data) => {
         this.responseService.success(res, data);
       })

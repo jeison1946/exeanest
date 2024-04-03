@@ -35,6 +35,36 @@ export class RuleService {
     }
   }
 
+  async getList(filter: any) {
+    const filters: any = {};
+
+    if (filter && filter.point_of_sale) {
+      filters.point_of_sale = filter.point_of_sale;
+    }
+
+    if (filter && filter.name_rule) {
+      filters.name_rule = {
+        $regex: `^${filter.name_rule}`,
+        $options: 'i',
+      };
+    }
+    if (filter && filter.title) {
+      filters.title = {
+        $regex: `^${filter.title}`,
+        $options: 'i',
+      };
+    }
+    if (filter && filter.created_start && filter.created_end) {
+      filters.created = {
+        $gte: new Date(filter.created_start),
+        $lt: new Date(filter.created_end),
+      };
+    }
+
+    const limit = filter.limit ? parseInt(filter.limit, 10) : 10;
+    return await this.model.find(filters).sort({ created: -1 }).limit(limit);
+  }
+
   async get(filter: { pos: number }, request: Request) {
     const token: any = request.headers['x-auth-token'];
     if (token) {
@@ -46,7 +76,7 @@ export class RuleService {
       if (!lastRule) {
         key = Object.keys(data)[0];
       } else {
-        key = this.getRule(lastRule.rule_id, data, filter.pos, 0);
+        key = await this.getRule(lastRule.rule_id, data, filter.pos, 0);
       }
       return {
         ruleId: key,
@@ -54,8 +84,9 @@ export class RuleService {
         name: data[key].nombre,
         song: data[key].song,
       };
+    } else {
+      throw Error('Tuvimos problemas al procesar la solicitud');
     }
-    throw Error('Tuvimos problemas al procesar la solicitud');
   }
 
   async getRulesCms(id: number, token: string): Promise<any> {
@@ -91,12 +122,95 @@ export class RuleService {
           return true;
         }
       })
-      .catch((e) => {
+      .catch(() => {
         return false;
       });
   }
 
-  getRule(rule: number, items: [], pos: number, init: number) {
+  async getRule(
+    rule: number,
+    items: any[],
+    pos: number,
+    init: number,
+    alreadyValid: boolean = false,
+  ) {
+    const key: any = this.nextItem(rule, items);
+    const itemsObjectKeys = Object.keys(items);
+    if (key) {
+      const currentDate = new Date();
+      currentDate.setUTCHours(currentDate.getUTCHours() - 5);
+      const dateStart = new Date(items[key].fecha);
+      dateStart.setUTCHours(currentDate.getUTCHours() - 5);
+      const dateEnd = new Date(items[key].date_end);
+      dateEnd.setUTCHours(currentDate.getUTCHours() - 5);
+      const currentDay = currentDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+      });
+      switch (items[key].tipo) {
+        case 'default':
+          return key;
+        case 'once':
+          console.log(key, items[key].tipo);
+          break;
+        case 'weekdays':
+          console.log(key, items[key].tipo);
+          break;
+        case 'monthly':
+          console.log(key, items[key].tipo);
+          break;
+        case 'advanced':
+          console.log(key, items[key].tipo);
+          break;
+        case 'minute':
+          if (!alreadyValid) {
+            const enabledDate = this.compareDates(
+              currentDate,
+              dateStart,
+              dateEnd,
+            );
+            if (enabledDate && items[key].dias.length) {
+              const enabledDay = items[key].dias.some(function (element) {
+                return element.dias === currentDay;
+              });
+              if (enabledDay) {
+                const ifListen = await this.model.findOne({
+                  finish: false,
+                  rule_id: key,
+                  point_of_sale: pos,
+                });
+                if (!ifListen) {
+                  return key;
+                }
+              }
+            }
+          }
+          break;
+        case 'hours':
+          console.log(key, items[key].tipo);
+          break;
+        case 'hours_minute':
+          console.log(key, items[key].tipo);
+          break;
+      }
+      if (itemsObjectKeys.length == init) {
+        let keyDefault: boolean | number = false;
+        itemsObjectKeys.some(function (keyItem) {
+          if (items[keyItem].tipo === 'default_not_rule') {
+            keyDefault = parseInt(keyItem);
+            return true;
+          }
+        });
+        return keyDefault;
+      }
+      return await this.getRule(key, items, pos, init + 1, true);
+    }
+  }
+
+  compareDates(currentDate: Date, startDate: Date, endDate: Date) {
+    return currentDate >= startDate && currentDate <= endDate;
+  }
+
+  nextItem(rule: number, items: any[]): number | boolean {
     const claves = Object.keys(items);
     const indexFind = claves.findIndex((clave) => Number(clave) === rule);
     if (indexFind !== -1) {
@@ -105,7 +219,7 @@ export class RuleService {
         posicionSiguiente < claves.length
           ? claves[posicionSiguiente]
           : claves[0];
-      return siguienteClave;
+      return parseInt(siguienteClave);
     }
     return false;
   }
