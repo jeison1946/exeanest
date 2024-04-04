@@ -36,51 +36,47 @@ export class RuleService {
   }
 
   async getList(filter: any) {
+    const {
+      point_of_sale,
+      name_rule,
+      title,
+      created_start,
+      created_end,
+      limit = 10,
+      page = 1,
+    } = filter || {};
     const filters: any = {};
 
-    if (filter && filter.point_of_sale) {
-      filters.point_of_sale = filter.point_of_sale;
-    }
-
-    if (filter && filter.name_rule) {
-      filters.name_rule = {
-        $regex: `^${filter.name_rule}`,
-        $options: 'i',
-      };
-    }
-    if (filter && filter.title) {
-      filters.title = {
-        $regex: `^${filter.title}`,
-        $options: 'i',
-      };
-    }
-
-    if (filter && filter.created_start && filter.created_end) {
+    if (point_of_sale) filters.point_of_sale = point_of_sale;
+    if (name_rule)
+      filters.name_rule = { $regex: `^${filter.name_rule}`, $options: 'i' };
+    if (title) filters.title = { $regex: `^${filter.title}`, $options: 'i' };
+    if (created_start && created_end)
       filters.created = {
         $gte: new Date(filter.created_start),
         $lt: new Date(filter.created_end),
       };
+
+    if (limit == 1) {
+      return await this.model.findOne(filters, { password: 0, code_access: 0 });
+    } else {
+      const skip = (page - 1) * limit;
+      const count = await this.model.countDocuments();
+      const data = await this.model
+        .find(filters, { password: 0, code_access: 0 })
+        .skip(skip)
+        .limit(limit);
+      return {
+        rows: data,
+        pager: {
+          total: count,
+          pages: Math.ceil(count / limit),
+          page: parseInt(page),
+          nextPage: parseInt(page) + 1,
+          previusPage: parseInt(page) - 1,
+        },
+      };
     }
-
-    const limit = filter.limit ? parseInt(filter.limit, 10) : 10;
-    const page = filter.page ?? 0;
-    const skip = page * (limit - 1);
-    const count = await this.model.countDocuments();
-    console.log(count);
-    const data = await this.model
-      .find(filters)
-      .skip(skip)
-      .sort({ created: -1 })
-      .limit(limit);
-
-    return {
-      rows: data,
-      pager: {
-        total: count,
-        page: page,
-        nextPage: parseInt(page) + 1,
-      },
-    };
   }
 
   async get(filter: { pos: number }, request: Request) {
@@ -239,6 +235,6 @@ export class RuleService {
           : claves[0];
       return parseInt(siguienteClave);
     }
-    return false;
+    return parseInt(claves[0]);
   }
 }
