@@ -54,6 +54,7 @@ export class RuleService {
         $options: 'i',
       };
     }
+
     if (filter && filter.created_start && filter.created_end) {
       filters.created = {
         $gte: new Date(filter.created_start),
@@ -62,7 +63,24 @@ export class RuleService {
     }
 
     const limit = filter.limit ? parseInt(filter.limit, 10) : 10;
-    return await this.model.find(filters).sort({ created: -1 }).limit(limit);
+    const page = filter.page ?? 0;
+    const skip = page * (limit - 1);
+    const count = await this.model.countDocuments();
+    console.log(count);
+    const data = await this.model
+      .find(filters)
+      .skip(skip)
+      .sort({ created: -1 })
+      .limit(limit);
+
+    return {
+      rows: data,
+      pager: {
+        total: count,
+        page: page,
+        nextPage: parseInt(page) + 1,
+      },
+    };
   }
 
   async get(filter: { pos: number }, request: Request) {
