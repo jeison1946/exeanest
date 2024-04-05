@@ -65,6 +65,7 @@ export class RuleService {
       const data = await this.model
         .find(filters, { password: 0, code_access: 0 })
         .skip(skip)
+        .sort({ created: -1 })
         .limit(limit);
       return {
         rows: data,
@@ -153,13 +154,22 @@ export class RuleService {
     if (key) {
       const currentDate = new Date();
       currentDate.setUTCHours(currentDate.getUTCHours() - 5);
-      const dateStart = new Date(items[key].fecha);
-      dateStart.setUTCHours(currentDate.getUTCHours() - 5);
-      const dateEnd = new Date(items[key].date_end);
-      dateEnd.setUTCHours(currentDate.getUTCHours() - 5);
       const currentDay = currentDate.toLocaleDateString('en-US', {
         weekday: 'long',
       });
+      const dateStart = new Date(items[key].fecha);
+      dateStart.setUTCHours(dateStart.getUTCHours() - 5);
+      const dateEnd = new Date(items[key].date_end);
+      dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+      if (!alreadyValid) {
+        const rulePendingMinute = await this.pendingMinutes(
+          items,
+          pos,
+          currentDate,
+          currentDay,
+        );
+        if (rulePendingMinute) return rulePendingMinute;
+      }
       switch (items[key].tipo) {
         case 'default':
           return key;
@@ -220,20 +230,109 @@ export class RuleService {
     }
   }
 
+  async pendingMinutes(
+    items: any[],
+    pos: number,
+    currentDate: Date,
+    currentDay: string,
+  ): Promise<number | boolean> {
+    const arrayValues = Object.values(items);
+    const rules = [];
+    const rowsLoad = [];
+    arrayValues.forEach((element) => {
+      if (element.tipo == 'minute') {
+        const dateStart = new Date(element.fecha);
+        dateStart.setUTCHours(dateStart.getUTCHours() - 5);
+        const dateEnd = new Date(element.date_end);
+        dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+        const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
+        if (enabledDate) {
+          const enabledDay = element.dias.some(function (element: any) {
+            return element.dias === currentDay;
+          });
+          if (enabledDay) {
+            rules.push(element.rule_id);
+          }
+        }
+      }
+    });
+
+    if (rules.length) {
+      const rulesLoad = await this.model
+        .find({
+          point_of_sale: pos,
+          rule_id: { $in: rules },
+          finish: false,
+        })
+        .limit(rules.length)
+        .sort({ created: -1 });
+      for (const ruleItem of rulesLoad) {
+        const object: any = {
+          created: ruleItem.created,
+          rule_id: ruleItem.rule_id,
+          repeat: items[ruleItem.rule_id].repeat,
+        };
+        rowsLoad.push(object);
+      }
+      if (rowsLoad.length) {
+        rowsLoad.sort((a, b) => {
+          return parseInt(a.repeat) - parseInt(b.repeat);
+        });
+        return this.getKeyByRecent(rowsLoad, rowsLoad[0], currentDate, 1);
+      }
+    }
+    return false;
+  }
+
+  getKeyByRecent(
+    rowsLoad: any[],
+    load,
+    currentDate: Date,
+    init: number,
+  ): number | boolean {
+    const minute = load.repeat;
+    const dateItem = load.created;
+    dateItem.setMinutes(dateItem.getMinutes() + parseInt(minute));
+    if (currentDate > dateItem) return load.rule_id;
+    if (rowsLoad.length > 1) {
+      if (rowsLoad.length != init) {
+        const valuesSearch = rowsLoad.map((tObje) => tObje.rule_id);
+        const nextRule = this.nextItemArrayMinutes(valuesSearch, load.rule_id);
+        if (typeof nextRule == 'number') {
+          return this.getKeyByRecent(
+            rowsLoad,
+            rowsLoad[nextRule],
+            currentDate,
+            init + 1,
+          );
+        }
+      }
+    }
+
+    return false;
+  }
+
   compareDates(currentDate: Date, startDate: Date, endDate: Date) {
     return currentDate >= startDate && currentDate <= endDate;
+  }
+
+  nextItemArrayMinutes(array, valor) {
+    const indice = array.indexOf(valor);
+    if (indice !== -1 && indice < array.length - 1) {
+      return indice + 1;
+    } else {
+      return false;
+    }
   }
 
   nextItem(rule: number, items: any[]): number | boolean {
     const claves = Object.keys(items);
     const indexFind = claves.findIndex((clave) => Number(clave) === rule);
     if (indexFind !== -1) {
-      const posicionSiguiente = indexFind + 1;
-      const siguienteClave =
-        posicionSiguiente < claves.length
-          ? claves[posicionSiguiente]
-          : claves[0];
-      return parseInt(siguienteClave);
+      const nextPosition = indexFind + 1;
+      const nextKey =
+        nextPosition < claves.length ? claves[nextPosition] : claves[0];
+      return parseInt(nextKey);
     }
     return parseInt(claves[0]);
   }
