@@ -98,6 +98,7 @@ export class RuleService {
         id: key,
         name: data[key].nombre,
         song: data[key].song,
+        rules_hours: this.getAdvanceHour(data),
       };
     } else {
       throw Error('Tuvimos problemas al procesar la solicitud');
@@ -286,7 +287,7 @@ export class RuleService {
 
   getKeyByRecent(
     rowsLoad: any[],
-    load,
+    load: any,
     currentDate: Date,
     init: number,
   ): number | boolean {
@@ -310,6 +311,47 @@ export class RuleService {
     }
 
     return false;
+  }
+
+  getAdvanceHour(items: any[]) {
+    const currentDate = new Date();
+    currentDate.setUTCHours(currentDate.getUTCHours() - 5);
+    const currentDay = currentDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+    });
+    const data = Object.values(items);
+    const result = {};
+    data.forEach((item) => {
+      if (item.tipo == 'advanced') {
+        const dateStart = new Date(item.fecha);
+        dateStart.setUTCHours(dateStart.getUTCHours() - 5);
+        const dateEnd = new Date(item.date_end);
+        dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+        const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
+        if (enabledDate) {
+          const enabledDay = item.dias.some(function (element: any) {
+            return element.dias === currentDay;
+          });
+          if (enabledDay) {
+            const hoursEnabled = [];
+            item.horas.forEach((hour: any) => {
+              const partesHora = hour.horas.split(':');
+              const horaDeseada = new Date();
+              horaDeseada.setHours(parseInt(partesHora[0])); // Establecer las horas
+              horaDeseada.setMinutes(parseInt(partesHora[1]));
+              hoursEnabled.push(horaDeseada);
+            });
+            const hours = {
+              id: item.playlist,
+              name: item.nombre,
+              hours: hoursEnabled,
+            };
+            result[item.rule_id] = hours;
+          }
+        }
+      }
+    });
+    return result;
   }
 
   compareDates(currentDate: Date, startDate: Date, endDate: Date) {
