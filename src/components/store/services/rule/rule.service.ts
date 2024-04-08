@@ -162,6 +162,7 @@ export class RuleService {
       dateStart.setUTCHours(dateStart.getUTCHours() - 5);
       const dateEnd = new Date(items[key].date_end);
       dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+      const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
       if (!alreadyValid) {
         const rulePendingMinute = await this.pendingMinutes(
           items,
@@ -175,13 +176,41 @@ export class RuleService {
         case 'default':
           return key;
         case 'once':
-          console.log(key, items[key].tipo);
+          const dateOnce = new Date(items[key].fecha);
+          dateOnce.setUTCHours(dateOnce.getUTCHours());
+          const dateOnceEnd = new Date(items[key].fecha);
+          dateOnceEnd.setMinutes(59);
+          dateOnceEnd.setUTCHours(23);
+          const activeCurrent = this.compareDates(
+            currentDate,
+            dateOnce,
+            dateOnceEnd,
+          );
+          if (activeCurrent) {
+            return key;
+          }
           break;
         case 'weekdays':
-          console.log(key, items[key].tipo);
+          if (enabledDate && items[key].dias.length) {
+            const enabledDay = items[key].dias.some(function (element) {
+              return element.dias === currentDay;
+            });
+            if (enabledDay) {
+              const ifListen = await this.model.findOne({
+                finish: false,
+                rule_id: key,
+                point_of_sale: pos,
+              });
+              if (!ifListen) {
+                return key;
+              }
+            }
+          }
           break;
         case 'monthly':
-          console.log(key, items[key].tipo);
+          if (enabledDate) {
+            return key;
+          }
           break;
         case 'advanced':
           console.log(key, items[key].tipo);
@@ -214,7 +243,28 @@ export class RuleService {
           console.log(key, items[key].tipo);
           break;
         case 'hours_minute':
-          console.log(key, items[key].tipo);
+          if (!alreadyValid) {
+            const enabledDate = this.compareDates(
+              currentDate,
+              dateStart,
+              dateEnd,
+            );
+            if (enabledDate && items[key].dias.length) {
+              const enabledDay = items[key].dias.some(function (element) {
+                return element.dias === currentDay;
+              });
+              if (enabledDay) {
+                const ifListen = await this.model.findOne({
+                  finish: false,
+                  rule_id: key,
+                  point_of_sale: pos,
+                });
+                if (!ifListen) {
+                  return key;
+                }
+              }
+            }
+          }
           break;
       }
       if (itemsObjectKeys.length == init) {
@@ -241,7 +291,7 @@ export class RuleService {
     const rules = [];
     const rowsLoad = [];
     arrayValues.forEach((element) => {
-      if (element.tipo == 'minute') {
+      if (element.tipo == 'minute' || element.tipo == 'hours_minute') {
         const dateStart = new Date(element.fecha);
         dateStart.setUTCHours(dateStart.getUTCHours() - 5);
         const dateEnd = new Date(element.date_end);
