@@ -175,21 +175,6 @@ export class RuleService {
       switch (items[key].tipo) {
         case 'default':
           return key;
-        case 'once':
-          const dateOnce = new Date(items[key].fecha);
-          dateOnce.setUTCHours(dateOnce.getUTCHours());
-          const dateOnceEnd = new Date(items[key].fecha);
-          dateOnceEnd.setMinutes(59);
-          dateOnceEnd.setUTCHours(23);
-          const activeCurrent = this.compareDates(
-            currentDate,
-            dateOnce,
-            dateOnceEnd,
-          );
-          if (activeCurrent) {
-            return key;
-          }
-          break;
         case 'weekdays':
           if (enabledDate && items[key].dias.length) {
             const enabledDay = items[key].dias.some(function (element) {
@@ -207,21 +192,8 @@ export class RuleService {
             }
           }
           break;
-        case 'monthly':
-          if (enabledDate) {
-            return key;
-          }
-          break;
-        case 'advanced':
-          console.log(key, items[key].tipo);
-          break;
         case 'minute':
           if (!alreadyValid) {
-            const enabledDate = this.compareDates(
-              currentDate,
-              dateStart,
-              dateEnd,
-            );
             if (enabledDate && items[key].dias.length) {
               const enabledDay = items[key].dias.some(function (element) {
                 return element.dias === currentDay;
@@ -240,27 +212,41 @@ export class RuleService {
           }
           break;
         case 'hours':
-          console.log(key, items[key].tipo);
+          if (enabledDate && items[key].dias.length) {
+            const enabledDay = items[key].dias.some(function (element) {
+              return element.dias === currentDay;
+            });
+            if (enabledDay) {
+              const enableHours = this.compareHours(
+                items[key].hora_inicio,
+                items[key].hora_fin,
+              );
+              if (enableHours) {
+                return key;
+              }
+            }
+          }
           break;
         case 'hours_minute':
           if (!alreadyValid) {
-            const enabledDate = this.compareDates(
-              currentDate,
-              dateStart,
-              dateEnd,
-            );
             if (enabledDate && items[key].dias.length) {
               const enabledDay = items[key].dias.some(function (element) {
                 return element.dias === currentDay;
               });
               if (enabledDay) {
-                const ifListen = await this.model.findOne({
-                  finish: false,
-                  rule_id: key,
-                  point_of_sale: pos,
-                });
-                if (!ifListen) {
-                  return key;
+                const enableHours = this.compareHours(
+                  items[key].hora_inicio,
+                  items[key].hora_fin,
+                );
+                if (enableHours) {
+                  const ifListen = await this.model.findOne({
+                    finish: false,
+                    rule_id: key,
+                    point_of_sale: pos,
+                  });
+                  if (!ifListen) {
+                    return key;
+                  }
                 }
               }
             }
@@ -406,6 +392,29 @@ export class RuleService {
 
   compareDates(currentDate: Date, startDate: Date, endDate: Date) {
     return currentDate >= startDate && currentDate <= endDate;
+  }
+
+  compareHours(hourStart: string, hourEnd: string) {
+    // Get the current time
+    const now = new Date();
+    now.setUTCHours(now.getUTCHours() - 5);
+
+    // Convert hora_inicio and hora_fin to Date objects
+    const startTime = new Date();
+    const startTimeParts = hourStart.split(':');
+    startTime.setHours(parseInt(startTimeParts[0]));
+    startTime.setMinutes(parseInt(startTimeParts[1]));
+    startTime.setUTCHours(startTime.getUTCHours() - 5);
+
+    const endTime = new Date();
+    const endTimeParts = hourEnd.split(':');
+    endTime.setHours(parseInt(endTimeParts[0], 10));
+    endTime.setMinutes(parseInt(endTimeParts[1], 10));
+    endTime.setUTCHours(endTime.getUTCHours() - 5);
+
+    return (
+      now.getTime() >= startTime.getTime() && now.getTime() <= endTime.getTime()
+    );
   }
 
   nextItemArrayMinutes(array, valor) {

@@ -34,7 +34,7 @@ export class StatusposService {
       // Filtrar los documentos para incluir solo los registros con pos igual a 102 o 103
       { $match: { pos: { $in: converInt } } },
       // Ordenar los documentos por fecha en orden descendente dentro de cada grupo de "pos"
-      { $sort: { pos: 1, date: -1 } },
+      { $sort: { date: -1 } },
       // Agrupar los documentos por el campo "pos"
       { $group: { _id: '$pos', lastRecord: { $first: '$$ROOT' } } },
     ]);
@@ -43,10 +43,13 @@ export class StatusposService {
   async disconect(id: string) {
     const exist = await this.model.findOne({ client: id });
     if (exist) {
+      const currentDate = new Date();
+      currentDate.setUTCHours(currentDate.getUTCHours() - 5);
       const data = {
         pos: exist.pos,
         status: false,
         client: id,
+        date: currentDate,
       };
       const newEntity = new this.model(data);
       await newEntity.save();
