@@ -193,6 +193,7 @@ export class RuleService {
           }
           break;
         case 'minute':
+          //
           if (!alreadyValid) {
             if (enabledDate && items[key].dias.length) {
               const enabledDay = items[key].dias.some(function (element) {
