@@ -93,12 +93,15 @@ export class RuleService {
       } else {
         key = await this.getRule(lastRule.rule_id, data, filter.pos, 0);
       }
+      const now = new Date();
+      now.setUTCHours(now.getUTCHours() - 5);
       return {
         ruleId: key,
         id: key,
         name: data[key].nombre,
         song: data[key].song,
         rules_hours: this.getAdvanceHour(data),
+        now: now,
       };
     } else {
       throw Error('Tuvimos problemas al procesar la solicitud');
