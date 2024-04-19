@@ -414,24 +414,24 @@ export class RuleService {
 
   compareHours(hourStart: string, hourEnd: string) {
     // Get the current time
-    const now = new Date();
-    now.setUTCHours(now.getUTCHours() - 5);
-
-    // Convert hora_inicio and hora_fin to Date objects
-    const startTime = new Date();
+    const now = moment();
+    const startTime = moment();
     const startTimeParts = hourStart.split(':');
-    startTime.setHours(parseInt(startTimeParts[0]));
-    startTime.setMinutes(parseInt(startTimeParts[1]));
-    startTime.setUTCHours(startTime.getUTCHours() - 5);
+    startTime.set({
+      hour: parseInt(startTimeParts[0]),
+      minute: parseInt(startTimeParts[1]),
+      second: 0,
+    });
 
-    const endTime = new Date();
+    const endTime = moment();
     const endTimeParts = hourEnd.split(':');
-    endTime.setHours(parseInt(endTimeParts[0], 10));
-    endTime.setMinutes(parseInt(endTimeParts[1], 10));
-    endTime.setUTCHours(endTime.getUTCHours() - 5);
-
+    endTime.set({
+      hour: parseInt(endTimeParts[0]),
+      minute: parseInt(endTimeParts[1]),
+      second: 0,
+    });
     return (
-      now.getTime() >= startTime.getTime() && now.getTime() <= endTime.getTime()
+      now.valueOf() >= startTime.valueOf() && now.valueOf() <= endTime.valueOf()
     );
   }
 
