@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 import { Rules } from '../../entities/rules/rules.entity';
 import { Model } from 'mongoose';
 import { RuletDto } from '../../dtos/rules/rule.dto';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class RuleService {
@@ -386,12 +387,13 @@ export class RuleService {
             const hoursEnabled = [];
             item.horas.forEach((hour: any) => {
               const partesHora = hour.horas.split(':');
-              const horaDeseada = new Date();
-              horaDeseada.setUTCHours(parseInt(partesHora[0])); // Establecer las horas
-              horaDeseada.setMinutes(parseInt(partesHora[1]));
-              horaDeseada.setSeconds(0);
-              horaDeseada.setMilliseconds(0);
-              hoursEnabled.push(horaDeseada);
+              const horaDeseada = moment();
+              horaDeseada.set({
+                hour: parseInt(partesHora[0]),
+                minute: parseInt(partesHora[1]),
+                second: 0,
+              });
+              hoursEnabled.push(horaDeseada.valueOf());
             });
             const hours = {
               id: item.playlist,
