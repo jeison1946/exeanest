@@ -292,7 +292,17 @@ export class RuleService {
             return element.dias === currentDay;
           });
           if (enabledDay) {
-            rules.push(element.rule_id);
+            if (element.tipo == 'hours_minute') {
+              const enableHours = this.compareHours(
+                element.hora_inicio,
+                element.hora_fin,
+              );
+              if (enableHours) {
+                rules.push(element.rule_id);
+              }
+            } else {
+              rules.push(element.rule_id);
+            }
           }
         }
       }
@@ -377,8 +387,10 @@ export class RuleService {
             item.horas.forEach((hour: any) => {
               const partesHora = hour.horas.split(':');
               const horaDeseada = new Date();
-              horaDeseada.setHours(parseInt(partesHora[0])); // Establecer las horas
+              horaDeseada.setUTCHours(parseInt(partesHora[0])); // Establecer las horas
               horaDeseada.setMinutes(parseInt(partesHora[1]));
+              horaDeseada.setSeconds(0);
+              horaDeseada.setMilliseconds(0);
               hoursEnabled.push(horaDeseada);
             });
             const hours = {
