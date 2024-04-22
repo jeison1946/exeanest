@@ -197,24 +197,22 @@ export class RuleService {
           }
           break;
         case 'minute':
-          //
-          if (!alreadyValid) {
-            if (enabledDate && items[key].dias.length) {
-              const enabledDay = items[key].dias.some(function (element) {
-                return element.dias === currentDay;
+          if (enabledDate && items[key].dias.length) {
+            const enabledDay = items[key].dias.some(function (element) {
+              return element.dias === currentDay;
+            });
+            if (enabledDay) {
+              const ifListen = await this.model.findOne({
+                finish: false,
+                rule_id: key,
+                point_of_sale: pos,
               });
-              if (enabledDay) {
-                const ifListen = await this.model.findOne({
-                  finish: false,
-                  rule_id: key,
-                  point_of_sale: pos,
-                });
-                if (!ifListen) {
-                  return key;
-                }
+              if (!ifListen) {
+                return key;
               }
             }
           }
+
           break;
         case 'hours':
           if (enabledDate && items[key].dias.length) {
@@ -233,29 +231,28 @@ export class RuleService {
           }
           break;
         case 'hours_minute':
-          if (!alreadyValid) {
-            if (enabledDate && items[key].dias.length) {
-              const enabledDay = items[key].dias.some(function (element) {
-                return element.dias === currentDay;
-              });
-              if (enabledDay) {
-                const enableHours = this.compareHours(
-                  items[key].hora_inicio,
-                  items[key].hora_fin,
-                );
-                if (enableHours) {
-                  const ifListen = await this.model.findOne({
-                    finish: false,
-                    rule_id: key,
-                    point_of_sale: pos,
-                  });
-                  if (!ifListen) {
-                    return key;
-                  }
+          if (enabledDate && items[key].dias.length) {
+            const enabledDay = items[key].dias.some(function (element) {
+              return element.dias === currentDay;
+            });
+            if (enabledDay) {
+              const enableHours = this.compareHours(
+                items[key].hora_inicio,
+                items[key].hora_fin,
+              );
+              if (enableHours) {
+                const ifListen = await this.model.findOne({
+                  finish: false,
+                  rule_id: key,
+                  point_of_sale: pos,
+                });
+                if (!ifListen) {
+                  return key;
                 }
               }
             }
           }
+
           break;
       }
       if (itemsObjectKeys.length == init) {
