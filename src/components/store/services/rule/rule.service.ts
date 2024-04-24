@@ -157,15 +157,10 @@ export class RuleService {
     const key: any = this.nextItem(rule, items);
     const itemsObjectKeys = Object.keys(items);
     if (key) {
-      const currentDate = new Date();
-      currentDate.setUTCHours(currentDate.getUTCHours() - 5);
-      const currentDay = currentDate.toLocaleDateString('en-US', {
-        weekday: 'long',
-      });
-      const dateStart = new Date(items[key].fecha);
-      dateStart.setUTCHours(dateStart.getUTCHours() - 5);
-      const dateEnd = new Date(items[key].date_end);
-      dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+      const currentDate = moment();
+      const dateStart = moment(items[key].fecha);
+      const dateEnd = moment(items[key].date_end);
+      const currentDay = currentDate.format('dddd');
       const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
       if (!alreadyValid) {
         const rulePendingMinute = await this.pendingMinutes(
@@ -231,6 +226,7 @@ export class RuleService {
           }
           break;
         case 'hours_minute':
+          console.log(items[key]);
           if (enabledDate && items[key].dias.length) {
             const enabledDay = items[key].dias.some(function (element) {
               return element.dias === currentDay;
@@ -272,7 +268,7 @@ export class RuleService {
   async pendingMinutes(
     items: any[],
     pos: number,
-    currentDate: Date,
+    currentDate: moment.Moment,
     currentDay: string,
   ): Promise<number | boolean> {
     const arrayValues = Object.values(items);
@@ -280,10 +276,8 @@ export class RuleService {
     const rowsLoad = [];
     arrayValues.forEach((element) => {
       if (element.tipo == 'minute' || element.tipo == 'hours_minute') {
-        const dateStart = new Date(element.fecha);
-        dateStart.setUTCHours(dateStart.getUTCHours() - 5);
-        const dateEnd = new Date(element.date_end);
-        dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+        const dateStart = moment(element.fecha);
+        const dateEnd = moment(element.date_end);
         const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
         if (enabledDate) {
           const enabledDay = element.dias.some(function (element: any) {
@@ -305,7 +299,6 @@ export class RuleService {
         }
       }
     });
-
     if (rules.length) {
       const rulesLoad = await this.model
         .find({
@@ -336,13 +329,13 @@ export class RuleService {
   getKeyByRecent(
     rowsLoad: any[],
     load: any,
-    currentDate: Date,
+    currentDate: moment.Moment,
     init: number,
   ): number | boolean {
     const minute = load.repeat;
-    const dateItem = load.created;
-    dateItem.setMinutes(dateItem.getMinutes() + parseInt(minute));
-    if (currentDate > dateItem) return load.rule_id;
+    const dateItem = moment(load.created);
+    dateItem.add(parseInt(minute), 'minutes');
+    if (currentDate.valueOf() > dateItem.valueOf()) return load.rule_id;
     if (rowsLoad.length > 1) {
       if (rowsLoad.length != init) {
         const valuesSearch = rowsLoad.map((tObje) => tObje.rule_id);
@@ -362,19 +355,14 @@ export class RuleService {
   }
 
   getAdvanceHour(items: any[]) {
-    const currentDate = new Date();
-    currentDate.setUTCHours(currentDate.getUTCHours() - 5);
-    const currentDay = currentDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-    });
+    const currentDate = moment();
+    const currentDay = currentDate.format('dddd');
     const data = Object.values(items);
     const result = {};
     data.forEach((item) => {
       if (item.tipo == 'advanced') {
-        const dateStart = new Date(item.fecha);
-        dateStart.setUTCHours(dateStart.getUTCHours() - 5);
-        const dateEnd = new Date(item.date_end);
-        dateEnd.setUTCHours(dateEnd.getUTCHours() - 5);
+        const dateStart = moment(item.fecha);
+        const dateEnd = moment(item.date_end);
         const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
         if (enabledDate) {
           const enabledDay = item.dias.some(function (element: any) {
@@ -384,7 +372,7 @@ export class RuleService {
             const hoursEnabled = [];
             item.horas.forEach((hour: any) => {
               const partesHora = hour.horas.split(':');
-              const horaDeseada = moment();
+              const horaDeseada = currentDate;
               horaDeseada.set({
                 hour: parseInt(partesHora[0]),
                 minute: parseInt(partesHora[1]),
@@ -405,8 +393,15 @@ export class RuleService {
     return result;
   }
 
-  compareDates(currentDate: Date, startDate: Date, endDate: Date) {
-    return currentDate >= startDate && currentDate <= endDate;
+  compareDates(
+    currentDate: moment.Moment,
+    startDate: moment.Moment,
+    endDate: moment.Moment,
+  ) {
+    return (
+      currentDate.valueOf() >= startDate.valueOf() &&
+      currentDate.valueOf() <= endDate.valueOf()
+    );
   }
 
   compareHours(hourStart: string, hourEnd: string) {
