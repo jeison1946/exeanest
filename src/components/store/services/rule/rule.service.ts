@@ -102,7 +102,7 @@ export class RuleService {
         name: data[key].nombre,
         song: data[key].song,
         rules_hours: this.getAdvanceHour(data),
-        now: now,
+        now: data,
       };
     } else {
       throw Error('Tuvimos problemas al procesar la solicitud');
@@ -333,9 +333,9 @@ export class RuleService {
     init: number,
   ): number | boolean {
     const minute = load.repeat;
-    const dateItem = moment(load.created);
+    const dateItem = moment(load.created).add(5, 'hours');
     dateItem.add(parseInt(minute), 'minutes');
-    if (currentDate.valueOf() > dateItem.valueOf()) return load.rule_id;
+    if (currentDate.isAfter(dateItem)) return load.rule_id;
     if (rowsLoad.length > 1) {
       if (rowsLoad.length != init) {
         const valuesSearch = rowsLoad.map((tObje) => tObje.rule_id);
