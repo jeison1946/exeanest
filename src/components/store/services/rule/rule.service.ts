@@ -158,7 +158,7 @@ export class RuleService {
     if (key) {
       const currentDate = moment();
       const dateStart = moment(items[key].fecha);
-      const dateEnd = moment(items[key].date_end);
+      const dateEnd = moment(items[key].date_end).set({ hour: 23, minute: 59 });
       const currentDay = currentDate.format('dddd');
       const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
       if (!alreadyValid) {
