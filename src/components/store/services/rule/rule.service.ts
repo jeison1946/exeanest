@@ -101,7 +101,7 @@ export class RuleService {
         name: data[key].nombre,
         song: data[key].song,
         rules_hours: this.getAdvanceHour(data),
-        now: now,
+        now: data,
       };
     } else {
       throw Error('Tuvimos problemas al procesar la solicitud');
@@ -276,7 +276,7 @@ export class RuleService {
     arrayValues.forEach((element) => {
       if (element.tipo == 'minute' || element.tipo == 'hours_minute') {
         const dateStart = moment(element.fecha);
-        const dateEnd = moment(element.date_end);
+        const dateEnd = moment(element.date_end).set({ hour: 23, minute: 59 });
         const enabledDate = this.compareDates(currentDate, dateStart, dateEnd);
         if (enabledDate) {
           const enabledDay = element.dias.some(function (element: any) {
