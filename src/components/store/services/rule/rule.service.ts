@@ -82,9 +82,11 @@ export class RuleService {
   }
 
   async get(filter: { pos: number }, request: Request) {
-    const token: any = request.headers['x-auth-token'];
+    const token: any =
+      request.headers['x-auth-token'] || request.headers['x-user-token'];
     if (token) {
-      const data = await this.getRulesCms(filter.pos, token);
+      const type = request.headers['x-auth-token'] ? 'web' : 'radio';
+      const data = await this.getRulesCms(filter.pos, token, type);
       const lastRule = await this.model
         .findOne({ point_of_sale: filter.pos })
         .sort({ created: -1 });
@@ -108,13 +110,24 @@ export class RuleService {
     }
   }
 
-  async getRulesCms(id: number, token: string): Promise<any> {
+  async getRulesCms(
+    id: number,
+    token: string,
+    type: string = 'web',
+  ): Promise<any> {
+    let header: any = {
+      'Content-Type': 'application/json',
+      'X-AUTH-TOKEN': token,
+    };
+    if (type == 'radio') {
+      header = {
+        'Content-Type': 'application/json',
+        'X-USER-TOKEN': token,
+      };
+    }
     return await fetch(`${process.env.CMS}/api/v1/pos/rules?id=${id}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-AUTH-TOKEN': token,
-      },
+      headers: header,
     })
       .then(async (response) => {
         if (response.status == 200) {
@@ -127,13 +140,20 @@ export class RuleService {
       });
   }
 
-  async updateCaheData(data: any, token: string) {
+  async updateCaheData(data: any, token: string, type: string = 'web') {
+    let header: any = {
+      'Content-Type': 'application/json',
+      'X-AUTH-TOKEN': token,
+    };
+    if (type == 'radio') {
+      header = {
+        'Content-Type': 'application/json',
+        'X-USER-TOKEN': token,
+      };
+    }
     return await fetch(`${process.env.CMS}/api/v1/pos/rules`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-AUTH-TOKEN': token,
-      },
+      headers: header,
       body: JSON.stringify(data),
     })
       .then(async (response) => {
