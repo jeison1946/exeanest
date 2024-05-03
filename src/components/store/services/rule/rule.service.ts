@@ -12,28 +12,31 @@ export class RuleService {
   constructor(@InjectModel(Rules.name) private readonly model: Model<Rules>) {}
 
   async create(data: RuletDto, request: Request): Promise<any> {
-    const token: any = request.headers['x-auth-token'];
-    const filters = {
-      point_of_sale: data.point_of_sale,
-      rule_id: data.rule_id,
-    };
-    const items = await this.model.find(filters);
-    for (const item of items) {
-      await this.model.findByIdAndUpdate(item._id, {
-        finish: true,
-      });
+    const token: any =
+      request.headers['x-auth-token'] || request.headers['x-user-token'];
+    if (token) {
+      const type = request.headers['x-auth-token'] ? 'web' : 'radio';
+      const filters = {
+        point_of_sale: data.point_of_sale,
+        rule_id: data.rule_id,
+      };
+      const items = await this.model.find(filters);
+      for (const item of items) {
+        await this.model.findByIdAndUpdate(item._id, {
+          finish: true,
+        });
+      }
+      const dataBody = {
+        rule_id: data.rule_id,
+        pos_id: data.point_of_sale,
+      };
+      const statusUpdate = await this.updateCaheData(dataBody, token, type);
+      if (statusUpdate) {
+        const newEntity = new this.model(data);
+        return await newEntity.save();
+      }
     }
-    const dataBody = {
-      rule_id: data.rule_id,
-      pos_id: data.point_of_sale,
-    };
-    const statusUpdate = await this.updateCaheData(dataBody, token);
-    if (statusUpdate) {
-      const newEntity = new this.model(data);
-      return await newEntity.save();
-    } else {
-      throw Error('Tuvimos problemas al actualizar la información');
-    }
+    throw Error('Tuvimos problemas al actualizar la información');
   }
 
   async getList(filter: any) {
@@ -245,7 +248,6 @@ export class RuleService {
           }
           break;
         case 'hours_minute':
-          console.log(items[key]);
           if (enabledDate && items[key].dias.length) {
             const enabledDay = items[key].dias.some(function (element) {
               return element.dias === currentDay;
