@@ -5,7 +5,7 @@ export type RulesDocument = HydratedDocument<Rules>;
 
 @Schema()
 export class Rules {
-  @Prop({ type: Date, required: true, default: Date.now })
+  @Prop({ type: Date, required: true })
   created: Date;
 
   @Prop({ type: String, required: true })

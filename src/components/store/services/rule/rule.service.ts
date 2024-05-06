@@ -32,6 +32,9 @@ export class RuleService {
       };
       const statusUpdate = await this.updateCaheData(dataBody, token, type);
       if (statusUpdate) {
+        const currentDate = new Date();
+        currentDate.setUTCHours(currentDate.getUTCHours() - 5);
+        data.created = currentDate;
         const newEntity = new this.model(data);
         return await newEntity.save();
       }
