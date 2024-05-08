@@ -1,7 +1,13 @@
-import { IsNotEmpty, IsString, IsNumber, IsDateString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsDateString,
+  IsOptional,
+} from 'class-validator';
 
 export class RuletDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsDateString()
   created: Date;
 
