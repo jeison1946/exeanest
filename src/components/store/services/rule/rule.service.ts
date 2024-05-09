@@ -65,7 +65,9 @@ export class RuleService {
       };
 
     if (limit == 1) {
-      return await this.model.findOne(filters, { password: 0, code_access: 0 });
+      return await this.model
+        .findOne(filters, { password: 0, code_access: 0 })
+        .sort({ created: -1 });
     } else {
       const skip = (page - 1) * limit;
       const count = await this.model.countDocuments();
