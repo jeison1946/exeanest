@@ -8,6 +8,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       useFactory: async (config: ConfigService) => ({
         uri: `mongodb+srv://${config.get('DB_USER')}:${config.get('DB_PASSWORD')}@${config.get('DB_CLUSTER')}/?retryWrites=true&w=majority`,
         dbName: config.get('DB_NAME'),
+        maxPoolSize: 100,
       }),
       inject: [ConfigService],
     }),
