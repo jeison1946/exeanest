@@ -1,15 +1,14 @@
 import {
-  IsNotEmpty,
-  IsString,
-  IsNumber,
   IsDateString,
+  IsNotEmpty,
   IsOptional,
+  IsString,
 } from 'class-validator';
 
-export class RuletDto {
+export class SongRequesttDto {
   @IsOptional()
   @IsDateString()
-  created: Date;
+  date: Date;
 
   @IsNotEmpty()
   @IsString()
@@ -17,25 +16,29 @@ export class RuletDto {
 
   @IsNotEmpty()
   @IsString()
-  author: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  song_id: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  point_of_sale: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  rule_id: number;
+  artist: string;
 
   @IsNotEmpty()
   @IsString()
-  name_rule: string;
+  album: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  type: string;
+  year: string;
+
+  @IsNotEmpty()
+  @IsString()
+  url: string;
+
+  @IsNotEmpty()
+  @IsString()
+  file_size: string;
+
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  @IsNotEmpty()
+  @IsString()
+  pos: string;
 }

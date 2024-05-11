@@ -14,7 +14,7 @@ export class StatusposService {
       .find({
         pos: data.pos,
         status: data.status,
-        client: data.clien4t,
+        client: data.client,
       })
       .limit(1)
       .sort({ date: -1 })

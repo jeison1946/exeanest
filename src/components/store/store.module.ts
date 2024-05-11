@@ -12,15 +12,22 @@ import {
 import { RulesController } from './controller/rules/rules.controller';
 import { RuleService } from './services/rule/rule.service';
 import { Rules, RulesSchema } from './entities/rules/rules.entity';
+import {
+  SongRequest,
+  SongRequestSchema,
+} from './entities/song_request/song_request.entity';
+import { SongRequestController } from './controller/song_request/song_request.controller';
+import { SongRequestService } from './services/song_request/song_request.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: StatusPos.name, schema: StatusPosSchema },
       { name: Rules.name, schema: RulesSchema },
+      { name: SongRequest.name, schema: SongRequestSchema },
     ]),
   ],
-  providers: [ResponseService, LiveService, StatusposService, RuleService],
-  controllers: [LiveController, StatusposController, RulesController],
+  providers: [ResponseService, LiveService, StatusposService, RuleService, SongRequestService],
+  controllers: [LiveController, StatusposController, RulesController, SongRequestController],
 })
 export class StoreModule {}

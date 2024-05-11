@@ -6,31 +6,53 @@ import { Rules } from '../../entities/rules/rules.entity';
 import { Model } from 'mongoose';
 import { RuletDto } from '../../dtos/rules/rule.dto';
 import * as moment from 'moment-timezone';
+import { SongRequest } from '../../entities/song_request/song_request.entity';
 
 @Injectable()
 export class RuleService {
-  constructor(@InjectModel(Rules.name) private readonly model: Model<Rules>) {}
+  constructor(
+    @InjectModel(Rules.name) private readonly model: Model<Rules>,
+    @InjectModel(SongRequest.name)
+    private readonly modelSongRequest: Model<SongRequest>,
+  ) {}
 
   async create(data: RuletDto, request: Request): Promise<any> {
     const token: any =
       request.headers['x-auth-token'] || request.headers['x-user-token'];
+    let statusUpdate: any;
     if (token) {
       const type = request.headers['x-auth-token'] ? 'web' : 'radio';
-      const filters = {
-        point_of_sale: data.point_of_sale,
-        rule_id: data.rule_id,
-      };
-      const items = await this.model.find(filters);
-      for (const item of items) {
-        await this.model.findByIdAndUpdate(item._id, {
-          finish: true,
-        });
+      if (data.rule_id == 0) {
+        data.type = 'user_request';
+        statusUpdate = await this.modelSongRequest.findOneAndUpdate(
+          {
+            pos: data.point_of_sale.toString(),
+            id: data.song_id.toString(),
+          },
+          {
+            finish: true,
+          },
+        );
+      } else {
+        data.type = 'rules_default';
+        const filters = {
+          point_of_sale: data.point_of_sale,
+          rule_id: data.rule_id,
+        };
+        const items = await this.model.find(filters);
+        if (items.length) {
+          for (const item of items) {
+            await this.model.findByIdAndUpdate(item._id, {
+              finish: true,
+            });
+          }
+        }
+        const dataBody = {
+          rule_id: data.rule_id,
+          pos_id: data.point_of_sale,
+        };
+        statusUpdate = await this.updateCaheData(dataBody, token, type);
       }
-      const dataBody = {
-        rule_id: data.rule_id,
-        pos_id: data.point_of_sale,
-      };
-      const statusUpdate = await this.updateCaheData(dataBody, token, type);
       if (statusUpdate) {
         const currentDate = new Date();
         currentDate.setUTCHours(currentDate.getUTCHours() - 5);
@@ -94,25 +116,36 @@ export class RuleService {
       request.headers['x-auth-token'] || request.headers['x-user-token'];
     if (token) {
       const type = request.headers['x-auth-token'] ? 'web' : 'radio';
-      const data = await this.getRulesCms(filter.pos, token, type);
-      const lastRule = await this.model
-        .findOne({ point_of_sale: filter.pos })
-        .sort({ created: -1 });
-      let key: any = 0;
-      if (!lastRule) {
-        key = Object.keys(data)[0];
+      const ruleRequest = await this.modelSongRequest
+        .findOne({})
+        .sort({ created: 1 });
+      if (ruleRequest) {
+        return {
+          ruleId: 0,
+          id: 0,
+          name: 'Solicitado por usuario',
+          song: ruleRequest,
+          rules_hours: [],
+        };
       } else {
-        key = await this.getRule(lastRule.rule_id, data, filter.pos, 0);
+        const data = await this.getRulesCms(filter.pos, token, type);
+        const lastRule = await this.model
+          .findOne({ point_of_sale: filter.pos, type: { $ne: 'user_request' } })
+          .sort({ created: -1 });
+        let key: any = 0;
+        if (!lastRule) {
+          key = Object.keys(data)[0];
+        } else {
+          key = await this.getRule(lastRule.rule_id, data, filter.pos, 0);
+        }
+        return {
+          ruleId: key,
+          id: key,
+          name: data[key].nombre,
+          song: data[key].song,
+          rules_hours: this.getAdvanceHour(data),
+        };
       }
-      const now = moment();
-      return {
-        ruleId: key,
-        id: key,
-        name: data[key].nombre,
-        song: data[key].song,
-        rules_hours: this.getAdvanceHour(data),
-        now: now,
-      };
     } else {
       throw Error('Tuvimos problemas al procesar la solicitud');
     }

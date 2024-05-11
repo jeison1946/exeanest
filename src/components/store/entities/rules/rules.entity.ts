@@ -28,6 +28,9 @@ export class Rules {
 
   @Prop({ type: Boolean, default: false })
   finish: boolean;
+
+  @Prop({ type: String, required: true })
+  type: string;
 }
 
 const RulesModel = SchemaFactory.createForClass(Rules);
