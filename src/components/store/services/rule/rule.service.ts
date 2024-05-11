@@ -117,7 +117,7 @@ export class RuleService {
     if (token) {
       const type = request.headers['x-auth-token'] ? 'web' : 'radio';
       const ruleRequest = await this.modelSongRequest
-        .findOne({})
+        .findOne({ pos: filter.pos.toString(), finish: false })
         .sort({ created: 1 });
       if (ruleRequest) {
         return {
