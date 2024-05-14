@@ -37,6 +37,7 @@ export class RuleService {
         const filters = {
           point_of_sale: data.point_of_sale,
           rule_id: data.rule_id,
+          finish: false,
         };
         const items = await this.model.find(filters);
         if (items.length) {
@@ -180,7 +181,7 @@ export class RuleService {
       });
   }
 
-  async updateCaheData(data: any, token: string, type: string = 'web') {
+  updateCaheData(data: any, token: string, type: string = 'web') {
     let header: any = {
       'Content-Type': 'application/json',
       'X-AUTH-TOKEN': token,
@@ -191,12 +192,12 @@ export class RuleService {
         'X-USER-TOKEN': token,
       };
     }
-    return await fetch(`${process.env.CMS}/api/v1/pos/rules`, {
+    return fetch(`${process.env.CMS}/api/v1/pos/rules`, {
       method: 'PATCH',
       headers: header,
       body: JSON.stringify(data),
     })
-      .then(async (response) => {
+      .then((response) => {
         if (response.status == 200) {
           return true;
         }
