@@ -52,7 +52,9 @@ export class GatewaysGateway {
   statusPointofsaleEvent(): void {}
 
   @SubscribeMessage('currentSongListen')
-  currentSongListen(client: any, data: any): void {
+  currentSongListen(client: any, data: any): void {}
+
+  sendNotification(data: any) {
     this.server.emit('currentSongListen', data);
   }
 

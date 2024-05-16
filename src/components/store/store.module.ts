@@ -18,6 +18,7 @@ import {
 } from './entities/song_request/song_request.entity';
 import { SongRequestController } from './controller/song_request/song_request.controller';
 import { SongRequestService } from './services/song_request/song_request.service';
+import { GatewaysGateway } from '../gateways/gateways.gateway';
 
 @Module({
   imports: [
@@ -27,7 +28,19 @@ import { SongRequestService } from './services/song_request/song_request.service
       { name: SongRequest.name, schema: SongRequestSchema },
     ]),
   ],
-  providers: [ResponseService, LiveService, StatusposService, RuleService, SongRequestService],
-  controllers: [LiveController, StatusposController, RulesController, SongRequestController],
+  providers: [
+    ResponseService,
+    LiveService,
+    StatusposService,
+    RuleService,
+    SongRequestService,
+    GatewaysGateway,
+  ],
+  controllers: [
+    LiveController,
+    StatusposController,
+    RulesController,
+    SongRequestController,
+  ],
 })
 export class StoreModule {}

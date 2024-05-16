@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 import { RuletDto } from '../../dtos/rules/rule.dto';
 import * as moment from 'moment-timezone';
 import { SongRequest } from '../../entities/song_request/song_request.entity';
+import { GatewaysGateway } from 'src/components/gateways/gateways.gateway';
 
 @Injectable()
 export class RuleService {
@@ -14,6 +15,7 @@ export class RuleService {
     @InjectModel(Rules.name) private readonly model: Model<Rules>,
     @InjectModel(SongRequest.name)
     private readonly modelSongRequest: Model<SongRequest>,
+    private readonly eventGateway: GatewaysGateway,
   ) {}
 
   async create(data: RuletDto, request: Request): Promise<any> {
@@ -54,6 +56,11 @@ export class RuleService {
         statusUpdate = await this.updateCaheData(dataBody, token, type);
       }
       if (statusUpdate) {
+        this.eventGateway.sendNotification({
+          pos: data.point_of_sale,
+          title: data.title,
+          author: data.author,
+        });
         const currentDate = new Date();
         currentDate.setUTCHours(currentDate.getUTCHours() - 5);
         data.created = currentDate;
