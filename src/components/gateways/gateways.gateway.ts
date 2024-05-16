@@ -10,11 +10,13 @@ import { Server } from 'socket.io';
   cors: {
     origin: [
       'http://localhost:4200',
+      'http://localhost:4000',
       'https://emisoras.local.com',
       'https://dev-epa.us.seedcloud.co',
       'https://dev-exea-player.seedcloud.co',
       'https://emisoras2.exeamedia.com',
       'https://emisora2.exeamedia.com',
+      'https://store-exea.vercel.app',
     ],
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PATCH'],
     credentials: false,
@@ -48,6 +50,9 @@ export class GatewaysGateway {
 
   @SubscribeMessage('statusPointofsaleEvent')
   statusPointofsaleEvent(): void {}
+
+  @SubscribeMessage('currentSongListen')
+  currentSongListen(): void {}
 
   /* @SubscribeMessage('statusClient')
   statusClient(client: any, payload: any): void {} */
