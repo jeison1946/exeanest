@@ -123,10 +123,30 @@ export class RuleService {
       request.headers['x-auth-token'] || request.headers['x-user-token'];
     if (token) {
       const type = request.headers['x-auth-token'] ? 'web' : 'radio';
+      const data = await this.getRulesCms(filter.pos, token, type);
       const ruleRequest = await this.modelSongRequest
         .findOne({ pos: filter.pos.toString(), finish: false })
         .sort({ created: 1 });
-      if (ruleRequest) {
+      const lastRule = await this.model
+        .findOne({ point_of_sale: filter.pos, type: { $ne: 'user_request' } })
+        .sort({ created: -1 });
+      const key = lastRule
+        ? await await this.getRule(lastRule.rule_id, data, filter.pos, 0)
+        : Object.keys(data)[0];
+
+      const build = {
+        ruleId: key,
+        id: key,
+        name: data[key].nombre,
+        song: data[key].song,
+        rules_hours: this.getAdvanceHour(data),
+      };
+      if (
+        ruleRequest &&
+        (data[key].tipo == 'minute' || data[key].tipo == 'hours_minute')
+      ) {
+        return build;
+      } else if (ruleRequest) {
         return {
           ruleId: 0,
           id: 0,
@@ -135,23 +155,7 @@ export class RuleService {
           rules_hours: [],
         };
       } else {
-        const data = await this.getRulesCms(filter.pos, token, type);
-        const lastRule = await this.model
-          .findOne({ point_of_sale: filter.pos, type: { $ne: 'user_request' } })
-          .sort({ created: -1 });
-        let key: any = 0;
-        if (!lastRule) {
-          key = Object.keys(data)[0];
-        } else {
-          key = await this.getRule(lastRule.rule_id, data, filter.pos, 0);
-        }
-        return {
-          ruleId: key,
-          id: key,
-          name: data[key].nombre,
-          song: data[key].song,
-          rules_hours: this.getAdvanceHour(data),
-        };
+        return build;
       }
     } else {
       throw Error('Tuvimos problemas al procesar la solicitud');
