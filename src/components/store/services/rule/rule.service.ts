@@ -152,7 +152,7 @@ export class RuleService {
           id: 0,
           name: 'Solicitado por usuario',
           song: ruleRequest,
-          rules_hours: [],
+          rules_hours: build.rules_hours,
         };
       } else {
         return build;
