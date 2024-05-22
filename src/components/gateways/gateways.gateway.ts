@@ -17,6 +17,7 @@ import { Server } from 'socket.io';
       'https://emisoras2.exeamedia.com',
       'https://emisora2.exeamedia.com',
       'https://store-exea.vercel.app',
+      'https://store.exeamedia.com',
     ],
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PATCH'],
     credentials: false,
