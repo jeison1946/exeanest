@@ -25,7 +25,6 @@ export class RuleService {
     if (token) {
       const type = request.headers['x-auth-token'] ? 'web' : 'radio';
       if (data.rule_id == 0) {
-        console.log(data.point_of_sale.toString(), data.song_id.toString());
         data.type = 'user_request';
         statusUpdate = await this.modelSongRequest.findOne({
           pos: data.point_of_sale.toString(),

@@ -34,4 +34,5 @@ export class Rules {
 }
 
 const RulesModel = SchemaFactory.createForClass(Rules);
+RulesModel.index({ rule_id: 1, point_of_sale: 1 });
 export const RulesSchema = RulesModel;
