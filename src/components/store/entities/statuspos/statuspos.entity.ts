@@ -5,16 +5,16 @@ export type StatusPosDocument = HydratedDocument<StatusPos>;
 
 @Schema()
 export class StatusPos {
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   pos: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   status: boolean;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   client: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   date: Date;
 }
 
