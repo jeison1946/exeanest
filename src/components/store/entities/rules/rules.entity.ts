@@ -5,34 +5,33 @@ export type RulesDocument = HydratedDocument<Rules>;
 
 @Schema()
 export class Rules {
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date, required: true, index: true })
   created: Date;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, index: true })
   title: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, index: true })
   author: string;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, index: true })
   song_id: number;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, index: true })
   point_of_sale: number;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, index: true })
   rule_id: number;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, index: true })
   name_rule: string;
 
-  @Prop({ type: Boolean, default: false })
+  @Prop({ type: Boolean, default: false, index: true })
   finish: boolean;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, index: true })
   type: string;
 }
 
 const RulesModel = SchemaFactory.createForClass(Rules);
-RulesModel.index({ rule_id: 1, point_of_sale: 1 });
 export const RulesSchema = RulesModel;
